@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { getProductById } from "../get-product-by-id";
-import { AvailableProduct } from "../models/product.model";
 import { availableProducts } from "../mocks/products.mock";
 
 jest.mock("../mocks/products.mock", () => ({
@@ -51,7 +50,7 @@ describe("getProductById", () => {
     expect(response.headers?.["Content-Type"]).toBe("application/json");
     expect(response.headers?.["Access-Control-Allow-Headers"]).toBe("*");
     expect(response.headers?.["Access-Control-Allow-Credentials"]).toBe(true);
-    expect(response.body).toBe(JSON.stringify("Bad Request"));
+    expect(response.body).toBe("Bad Request");
   });
 
   it("should return correct 404 error response", async () => {
@@ -68,9 +67,7 @@ describe("getProductById", () => {
     expect(response.headers?.["Access-Control-Allow-Headers"]).toBe("*");
     expect(response.headers?.["Access-Control-Allow-Credentials"]).toBe(true);
     expect(response.body).toBe(
-      JSON.stringify(
-        "Not Found. There is no product with id nonexisting-product-id"
-      )
+      "Not Found. There is no product with id nonexisting-product-id"
     );
   });
 });
