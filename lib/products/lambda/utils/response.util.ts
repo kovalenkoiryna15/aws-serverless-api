@@ -1,23 +1,17 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import * as headersUtils from "./response-headers.util";
 
-export function response(
-  statusCode: number,
-  responseBody: any
-): APIGatewayProxyResult {
+export function response(statusCode: number, body: any): APIGatewayProxyResult {
   const headers = headersUtils.headers();
   const response: APIGatewayProxyResult = {
     statusCode,
     headers,
-    body: "",
+    body,
   };
 
-  if (typeof responseBody !== "string") {
+  if (typeof body !== "string") {
     try {
-      response.body =
-        typeof responseBody !== "string"
-          ? JSON.stringify(responseBody)
-          : responseBody;
+      response.body = JSON.stringify(body);
     } catch (error) {
       response.statusCode = 500;
       response.body = "Server error";
