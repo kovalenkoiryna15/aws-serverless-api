@@ -1,17 +1,15 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as AwsServerlessApi from '../lib/aws_serverless_api-stack';
+import * as cdk from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
+import { ProductsStack } from "../lib/products/products-stack";
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/aws_serverless_api-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new AwsServerlessApi.AwsServerlessApiStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
+test("Products Stack Created", () => {
+  const app = new cdk.App();
+  // WHEN
+  const stack = new ProductsStack(app, "ProductsTestStack");
+  // THEN
+  const template = Template.fromStack(stack);
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+  template.hasResourceProperties("AWS::ApiGateway::RestApi", {
+    Name: "Products",
+  });
 });
