@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Awesome Store - REST API
+  version: 1.0.0
+servers: 
+  - url: https://dgoalnfcfd.execute-api.eu-west-1.amazonaws.com/prod/
+tags:
+  - name: products
+paths:
+  /products:
+    get:
+      tags:
+        - products
+      summary: List all products
+      operationId: getProductsList
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableProduct'         
+  /products/{product_id}:
+    get:
+      tags:
+        - products
+      summary: Find product by ID
+      operationId: getProductById
+      description: Returns a single product
+      parameters:
+        - name: product_id
+          in: path
+          description: ID of product to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProduct'
+        '400':
+          description: Product id was not provided
+        '404':
+          description: Product not found
+components:
+  schemas:
+    AvailableProduct:
+      type: object
+      properties:
+        price:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: Kenya Kiringa Coffee
+        description:
+          type: string
+          example: Like all Kenyan coffees, our Kiringa has a clean, fruity flavour and a subtle sweetness.
+        id:
+          type: string
+          example: kenya-kiringa
