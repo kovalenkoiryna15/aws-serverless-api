@@ -8,10 +8,12 @@ export function validateObject<T>(obj: any, schema: Record<keyof T, Schema>): st
 
     if (schema[key].isRequired && !obj[key]) {
       errors.push(`${String(key)} is required`);
+      return errors;
     }
 
     if (typeof obj[key] !== schema[key].type) {
       errors.push(`${String(key)} should be of type ${schema[key].type}`);
+      return errors;
     }
 
     switch (schema[key].type) {

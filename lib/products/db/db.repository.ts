@@ -16,7 +16,8 @@ import {
 import { AvailableProduct, Product, Stock } from "../models/product.model";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { log } from "../lambda/utils/logger.util";
-import { isEmpty } from "../lambda/utils/is-empty.util";
+import { validateObject } from "../validation/validate-object.util";
+import { availableProductSchema } from "../validation/schemas/available-product.schema";
 
 export const dynamoDBClient = new DynamoDBClient({
   region: process.env.CDK_DEFAULT_REGION,
@@ -79,7 +80,9 @@ export async function getAvailableProductFromDB(id: string): Promise<AvailablePr
 
   const availableProduct: any = output.Responses?.reduce((acc, response: ItemResponse) => response.Item ? ({ ...acc, ...unmarshall(response.Item) }) : acc, {});
 
-  return isEmpty(availableProduct) ? null: availableProduct;
+  const validationErrors: string[] = validateObject<AvailableProduct>(availableProduct, availableProductSchema);
+
+  return validationErrors.length ? null : availableProduct;
 }
 
 export async function getAllAvailableProductsFromDB(): Promise<AvailableProduct[]> {
@@ -137,7 +140,7 @@ export async function getStockFromDB(id: string): Promise<Stock | null> {
     new GetItemCommand(input)
   );
 
-  if (!response?.Item) {
+  if (!response.Item) {
     return null;
   }
 

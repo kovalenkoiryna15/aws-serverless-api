@@ -3,11 +3,11 @@ import { response } from "./utils/response.util";
 import { putAvailableProductToDB } from "../db/db.repository";
 import { AvailableProduct } from "../models/product.model";
 import { randomUUID } from "crypto";
-import { Schema } from "../validation/schema.model";
 import { validateObject } from "../validation/validate-object.util";
 import { catchError } from "./utils/error-handler.util";
 import { log } from "./utils/logger.util";
 import { isEmpty } from "./utils/is-empty.util";
+import { availableProductSchema } from "../validation/schemas/available-product.schema";
 
 export const createProduct = async (
   event: APIGatewayProxyEvent
@@ -31,37 +31,6 @@ export const createProduct = async (
       description,
       price,
       count,
-    };
-  
-    const availableProductSchema: Record<keyof AvailableProduct, Schema> = {
-      id: {
-        type: 'string',
-        isRequired: true,
-      },
-      title: {
-        type: 'string',
-        isRequired: true,
-        maxLength: 200,
-        minLength: 1,
-      },
-      description: {
-        type: 'string',
-        isRequired: true,
-        maxLength: 200,
-        minLength: 1,
-      },
-      price: {
-        type: 'number',
-        isRequired: true,
-        max: 1000000,
-        min: 1,
-      },
-      count: {
-        type: 'number',
-        isRequired: true,
-        max: 1000000,
-        min: 1,
-      },
     };
   
     const validationErrors: string[] = validateObject<AvailableProduct>(availableProductInput, availableProductSchema);
