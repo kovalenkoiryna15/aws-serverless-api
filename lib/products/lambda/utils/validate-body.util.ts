@@ -1,4 +1,6 @@
-export function isValidBody(body: any): boolean {
+export function isValidBody(requestBody: any): boolean {
+  let body = requestBody;
+
   if (!body) {
     return false;
   }
