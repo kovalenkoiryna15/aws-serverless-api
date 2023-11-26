@@ -16,13 +16,11 @@ export const createProduct = async (
   log("request", { method: event.httpMethod, body: event.body });
 
   const promise = async () => {
-    let body;
-
     if (!isValidBody(event.body)) {
       return response(400, "Bad Request. Body is not valid json.");
     }
 
-    const { title, description, price, count }: any = body;
+    const { title, description, price, count }: any = event.body;
   
     if (isEmpty(title) || isEmpty(price) || isEmpty(count)) {
       return response(400, "Bad Request. Required params are missing. You should provide title, price and count.");
