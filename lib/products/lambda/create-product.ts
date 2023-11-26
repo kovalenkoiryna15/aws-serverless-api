@@ -21,14 +21,14 @@ export const createProduct = async (
   
     const { title, description, price, count }: any = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
   
-    if (isEmpty(title) || isEmpty(description) || isEmpty(price) || isEmpty(count)) {
-      return response(400, "Bad Request. Required params are missing. You should provide title, description, price and count.");
+    if (isEmpty(title) || isEmpty(price) || isEmpty(count)) {
+      return response(400, "Bad Request. Required params are missing. You should provide title, price and count.");
     }
   
     const availableProductInput = {
       id: randomUUID(),
       title,
-      description,
+      description: isEmpty(description) ? "" : description,
       price,
       count,
     };

@@ -14,7 +14,7 @@ export const availableProductSchema: Record<keyof AvailableProduct, Schema> = {
   },
   description: {
     type: 'string',
-    isRequired: true,
+    isRequired: false,
     maxLength: 200,
     minLength: 1,
   },
