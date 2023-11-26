@@ -15,15 +15,23 @@ export const createProduct = async (
   log("request", { method: event.httpMethod, body: event.body });
 
   const promise = async () => {
+    let body;
+
     if (!event.body) {
       return response(400, "Bad Request. Body should not be empty.");
     }
+
+    try {
+      body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    } catch(error) {
+      return response(400, "Bad Request. Body should not be valid json.");
+    }
   
-    const { title, description, price, count }: any = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-  
-    if (isEmpty(title) || isEmpty(price) || isEmpty(count)) {
+    if (isEmpty(body.title) || isEmpty(body.price) || isEmpty(body.count)) {
       return response(400, "Bad Request. Required params are missing. You should provide title, price and count.");
     }
+
+    const { title, description, price, count }: any = body;
   
     const availableProductInput = {
       id: randomUUID(),
