@@ -8,6 +8,7 @@ import { catchError } from "./utils/error-handler.util";
 import { log } from "./utils/logger.util";
 import { isEmpty } from "./utils/is-empty.util";
 import { availableProductSchema } from "../validation/schemas/available-product.schema";
+import { isValidBody } from "./utils/validate-body.util";
 
 export const createProduct = async (
   event: APIGatewayProxyEvent
@@ -17,21 +18,15 @@ export const createProduct = async (
   const promise = async () => {
     let body;
 
-    if (!event.body) {
-      return response(400, "Bad Request. Body should not be empty.");
-    }
-
-    try {
-      body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-    } catch(error) {
-      return response(400, "Bad Request. Body should not be valid json.");
-    }
-  
-    if (isEmpty(body.title) || isEmpty(body.price) || isEmpty(body.count)) {
-      return response(400, "Bad Request. Required params are missing. You should provide title, price and count.");
+    if (!isValidBody(event.body)) {
+      return response(400, "Bad Request. Body is not valid json.");
     }
 
     const { title, description, price, count }: any = body;
+  
+    if (isEmpty(title) || isEmpty(price) || isEmpty(count)) {
+      return response(400, "Bad Request. Required params are missing. You should provide title, price and count.");
+    }
   
     const availableProductInput = {
       id: randomUUID(),
