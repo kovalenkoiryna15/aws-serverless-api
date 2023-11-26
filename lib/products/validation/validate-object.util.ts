@@ -2,10 +2,6 @@ import { Schema } from "./schema.model";
 
 export function validateObject<T>(obj: any, schema: Record<keyof T, Schema>): string[] {
   const errors: string[] = (Object.keys(schema) as Array<keyof T>).reduce((errors: string[], key: keyof T) => {
-    if (!schema[key].isRequired) {
-      return errors;
-    }
-
     if (schema[key].isRequired && !obj[key]) {
       errors.push(`${String(key)} is required`);
       return errors;
