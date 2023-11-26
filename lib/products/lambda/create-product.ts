@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { response } from "./utils/response.util";
-import { putProductToDB, putStockToDB } from "../db/db.repository";
+import { putAvailableProductToDB } from "../db/db.repository";
 import { AvailableProduct } from "../models/product.model";
 import { randomUUID } from "crypto";
 import { Schema } from "../validation/schema.model";
@@ -69,18 +69,8 @@ export const createProduct = async (
     if (validationErrors.length) {
       return response(400, `Bad Request. Errors: ${validationErrors.join(';')}`);
     }
-  
-    await putProductToDB({
-      id: availableProductInput.id,
-      title: availableProductInput.title,
-      description: availableProductInput.description,
-      price: availableProductInput.price,
-    });
 
-    await putStockToDB({
-      product_id: availableProductInput.id,
-      count: availableProductInput.count,
-    });
+    await putAvailableProductToDB(availableProductInput);
   
     return response(200, availableProductInput);
   };
