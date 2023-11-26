@@ -21,7 +21,44 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AvailableProduct'         
+                  $ref: '#/components/schemas/AvailableProduct'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - products
+      summary: Create product
+      operationId: createProduct
+      requestBody:
+        description: Create a new product in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailableProductInput'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProduct'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /products/{product_id}:
     get:
       tags:
@@ -45,8 +82,22 @@ paths:
                 $ref: '#/components/schemas/AvailableProduct'
         '400':
           description: Product id was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     AvailableProduct:
@@ -65,3 +116,25 @@ components:
         id:
           type: string
           example: kenya-kiringa
+    AvailableProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Coffee 1
+        description:
+          type: string
+          example: This is my awesome coffee description.
+        price:
+          type: integer
+          format: int64
+          example: 25
+        count:
+          type: integer
+          format: int64
+          example: 100
+    Error:
+      type: object
+      properties:
+        message:
+          type: string

@@ -11,6 +11,8 @@ export function response(statusCode: number, body: any): APIGatewayProxyResult {
 
   if (typeof body !== "string") {
     response.body = JSON.stringify(body)
+  } else {
+    response.body = JSON.stringify({ message: body });
   }
 
   return response;
