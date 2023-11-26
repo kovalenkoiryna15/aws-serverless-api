@@ -16,7 +16,7 @@ export const availableProductSchema: Record<keyof AvailableProduct, Schema> = {
     type: 'string',
     isRequired: false,
     maxLength: 200,
-    minLength: 1,
+    minLength: 0,
   },
   price: {
     type: 'number',
