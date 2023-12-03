@@ -10,7 +10,7 @@ import { marshall } from "@aws-sdk/util-dynamodb";
 import { randomUUID } from "crypto";
 
 function createBatchWriteItemRequest() {
-  const folder = "./lib/products/db/requests";
+  const folder = "./lib/products-service/db/requests";
   const file = "products-batch-write-item-request.json";
   const path = `${folder}`;
 

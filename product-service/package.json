@@ -12,8 +12,8 @@
     "cdk:watch": "cdk watch",
     "cdk:deploy": "cdk deploy",
     "deploy": "npm run build & npm run cdk:deploy",
-    "products:dynamodb:pre-fill": "tsc ./lib/products/db/scripts/create-batch-write-item-request.ts & node ./lib/products/db/scripts/create-batch-write-item-request.js",
-    "products:dynamodb:fill": "npm run products:dynamodb:pre-fill & aws dynamodb batch-write-item --request-items file://lib/products/db/requests/products-batch-write-item-request.json",
+    "products:dynamodb:pre-fill": "tsc ./lib/products-service/db/scripts/create-batch-write-item-request.ts & node ./lib/products-service/db/scripts/create-batch-write-item-request.js",
+    "products:dynamodb:fill": "npm run products:dynamodb:pre-fill & aws dynamodb batch-write-item --request-items file://lib/products-service/db/requests/products-batch-write-item-request.json",
     "products:dynamodb:scan": "aws dynamodb scan --table-name RSSDynamoDBProductsTable",
     "stocks:dynamodb:scan": "aws dynamodb scan --table-name RSSDynamoDBStocksTable"
   },
