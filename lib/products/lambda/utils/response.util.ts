@@ -10,12 +10,9 @@ export function response(statusCode: number, body: any): APIGatewayProxyResult {
   };
 
   if (typeof body !== "string") {
-    try {
-      response.body = JSON.stringify(body);
-    } catch (error) {
-      response.statusCode = 500;
-      response.body = "Server error";
-    }
+    response.body = JSON.stringify(body)
+  } else {
+    response.body = JSON.stringify({ message: body });
   }
 
   return response;

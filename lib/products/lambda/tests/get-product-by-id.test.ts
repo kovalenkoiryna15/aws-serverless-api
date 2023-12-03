@@ -1,9 +1,18 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { getProductById } from "../get-product-by-id";
-import { availableProducts } from "../mocks/products.mock";
+import { getAvailableProducts, products } from "../../mocks/products.mock";
 
 jest.mock("../mocks/products.mock", () => ({
-  availableProducts: [
+  getAvailableProducts: jest.fn().mockReturnValue([
+    {
+      id: "id-1",
+      title: "title",
+      price: 10,
+      description: "description",
+      count: 2,
+    },
+  ]),
+  products: [
     {
       id: "id-1",
       title: "title",

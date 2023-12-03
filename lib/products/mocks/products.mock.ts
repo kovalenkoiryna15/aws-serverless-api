@@ -1,4 +1,5 @@
-import { AvailableProduct, Product } from "../models/product.model";
+import { AvailableProduct, Stock } from "../models/product.model";
+import { Product } from "../models/product.model";
 
 export const products: Product[] = [
   {
@@ -45,6 +46,13 @@ export const products: Product[] = [
   },
 ];
 
-export const availableProducts: AvailableProduct[] = products.map(
-  (product, index) => ({ ...product, count: index + 1 })
-);
+export function getAvailableProducts(products: Product[]): AvailableProduct[] {
+  return products.map((product, index) => ({ ...product, count: index + 1 }));
+}
+
+export function getStocks(products: Product[]): Stock[] {
+  return getAvailableProducts(products).map(({ id, count }) => ({
+    product_id: id,
+    count,
+  }));
+}
