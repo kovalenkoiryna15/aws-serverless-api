@@ -78,11 +78,20 @@ export async function getAvailableProductFromDB(id: string): Promise<AvailablePr
     new TransactGetItemsCommand(input)
   );
 
-  const availableProduct: any = output.Responses?.reduce((acc, response: ItemResponse) => response.Item ? ({ ...acc, ...unmarshall(response.Item) }) : acc, {});
+  const attributes: Partial<AvailableProduct> | undefined= output.Responses?.reduce(
+    (acc: Partial<AvailableProduct> | undefined, response: ItemResponse) => 
+      response.Item ? ({ ...acc, ...unmarshall(response.Item) }) : acc, {});
 
+  const availableProduct: Partial<AvailableProduct> = {
+    id: attributes?.id,
+    title: attributes?.title,
+    description: attributes?.description,
+    price: attributes?.price,
+    count: attributes?.count,
+  };
   const validationErrors: string[] = validateObject<AvailableProduct>(availableProduct, availableProductSchema);
 
-  return validationErrors.length ? null : availableProduct;
+  return validationErrors.length ? null : (availableProduct as AvailableProduct);
 }
 
 export async function getAllAvailableProductsFromDB(): Promise<AvailableProduct[]> {
