@@ -1,5 +1,5 @@
 import { APIGatewayProxyResult, S3Event } from "aws-lambda";
-import { CopyObjectCommand, CopyObjectCommandInput, CopyObjectCommandOutput, DeleteObjectCommand, DeleteObjectCommandInput, GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3Client } from "@aws-sdk/client-s3";
+import { CopyObjectCommand, CopyObjectCommandInput, DeleteObjectCommand, DeleteObjectCommandInput, GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3Client } from "@aws-sdk/client-s3";
 import csv from "csv-parser";
 import { buildResponse, catchError, log } from "./utils";
 import { BUCKET_NAME, Folders } from "./constants";
@@ -45,9 +45,11 @@ export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyR
 
       await s3Client.send(new DeleteObjectCommand(deleteObjectCommandInput));
       log('info', `File ${objectKey} removed from uploaded.`);
+
+      return buildResponse(200, { message: 'Success' });
     }
 
-    return buildResponse(200, { message: 'Success' });
+    return buildResponse(500, { message: 'Server Error.' });
   }
 
   return catchError(promise());
