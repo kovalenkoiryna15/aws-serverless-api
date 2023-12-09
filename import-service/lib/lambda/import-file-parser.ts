@@ -3,7 +3,7 @@ import { CopyObjectCommand, CopyObjectCommandInput, DeleteObjectCommand, DeleteO
 import { SQSClient, SendMessageCommand, SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import csv from "csv-parser";
 import { buildResponse, catchError, log } from "./utils";
-import { Folders } from "./constants";
+import { CsvHeaders, Folders } from "./constants";
 import { checkBodyIsIncomingMessage } from "./utils/check-body-type.util";
 
 export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyResult> => {
@@ -24,7 +24,18 @@ export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyR
 
       await new Promise<void>((resolve, reject) => {
         Body.pipe(csv({
-          mapValues: ({ header, index, value, }) => value,
+          headers: Object.values(CsvHeaders),
+          mapValues: ({ header, value }) => {
+            if (header === CsvHeaders.COUNT || header === CsvHeaders.PRICE) {
+              if (isNaN(value)) {
+                return value;
+              }
+
+              return Number(value);
+            }
+
+            return value;
+          },
         }))
           .on("data", (data: any) => {
             const promise: Promise<SendMessageCommandOutput> = sqs.send(new SendMessageCommand({

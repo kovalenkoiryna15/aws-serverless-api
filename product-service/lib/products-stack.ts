@@ -123,6 +123,6 @@ export class ProductsStack extends cdk.Stack {
     const catalogItemsQueue = new sqs.Queue(this, 'Catalog Items Queue');
     catalogItemsQueue.grantConsumeMessages(catalogBatchProcess);
 
-    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5, maxBatchingWindow: cdk.Duration.seconds(20) }));
+    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5, maxBatchingWindow: cdk.Duration.seconds(10) }));
   }
 }
