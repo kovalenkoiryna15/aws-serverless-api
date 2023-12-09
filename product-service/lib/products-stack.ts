@@ -6,7 +6,9 @@ import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as sns from 'aws-cdk-lib/aws-sns';
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import path from 'path';
 import {
   DYNAMO_DB_PRODUCTS_TABLE_NAME,
@@ -116,6 +118,7 @@ export class ProductsStack extends cdk.Stack {
           DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
           DYNAMO_DB_STOCKS_TABLE_NAME: DYNAMO_DB_STOCKS_TABLE_NAME,
           CDK_DEFAULT_REGION: process.env.CDK_DEFAULT_REGION!,
+          TOPIC_ARN: process.env.TOPIC_ARN!,
         },
       }
     );
@@ -123,6 +126,13 @@ export class ProductsStack extends cdk.Stack {
     const catalogItemsQueue = new sqs.Queue(this, 'Catalog Items Queue');
     catalogItemsQueue.grantConsumeMessages(catalogBatchProcess);
 
-    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5, maxBatchingWindow: cdk.Duration.seconds(10) }));
+    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, {
+      batchSize: 5,
+      maxBatchingWindow: cdk.Duration.seconds(10),
+    }));
+
+    const createProductTopic = new sns.Topic(this, 'Create Product Topic', { displayName: 'Create Product Topic' });
+    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL!));
+    createProductTopic.grantPublish(catalogBatchProcess);
   }
 }

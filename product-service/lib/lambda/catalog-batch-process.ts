@@ -8,9 +8,11 @@ import { validateObject } from "../validation/validate-object.util";
 import { AvailableProduct } from "../models/product.model";
 import { availableProductSchema } from "../validation/schemas/available-product.schema";
 import { putAvailableProductToDB } from "../db/db.repository";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 
 export const catalogBatchProcess = async (event: SQSEvent): Promise<APIGatewayProxyResult> => {
   log("request", event.Records.length);
+  const sns = new SNSClient();
 
   return Promise.allSettled(
     event.Records.map(async (record: SQSRecord) => {
@@ -41,6 +43,11 @@ export const catalogBatchProcess = async (event: SQSEvent): Promise<APIGatewayPr
       }
   
       await putAvailableProductToDB(availableProductInput);
+
+      await sns.send(new PublishCommand({
+        TopicArn: process.env.TOPIC_ARN,
+        Message: 'New product was created.',
+      }));
 
       return Promise.resolve(availableProductInput);
     }),
