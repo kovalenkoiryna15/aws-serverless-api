@@ -1,8 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
+import path from 'path';
 import {
   DYNAMO_DB_PRODUCTS_TABLE_NAME,
   DYNAMO_DB_STOCKS_TABLE_NAME,
@@ -35,13 +37,13 @@ export class ProductsStack extends cdk.Stack {
     );
 
     const products = api.root.addResource("products");
-    const productsLambdaIntegration = new lambda.Function(
+    const productsLambdaIntegration = new lambdaNodejs.NodejsFunction(
       this,
       "All Products Endpoint",
       {
         runtime: lambda.Runtime.NODEJS_18_X,
-        code: lambda.Code.fromAsset("lib/products"),
-        handler: "lambda.getProductsList",
+        entry: path.join(__dirname, "./lambda/get-products-list.ts"),
+        handler: "getProductsList",
         role: dbFullAccessRole,
         environment: {
           DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
@@ -55,13 +57,13 @@ export class ProductsStack extends cdk.Stack {
       new apigw.LambdaIntegration(productsLambdaIntegration)
     );
 
-    const createProductLambdaIntegration = new lambda.Function(
+    const createProductLambdaIntegration = new lambdaNodejs.NodejsFunction(
       this,
       "Create Product Endpoint",
       {
         runtime: lambda.Runtime.NODEJS_18_X,
-        code: lambda.Code.fromAsset("lib/products"),
-        handler: "lambda.createProduct",
+        entry: path.join(__dirname, "./lambda/create-product.ts"),
+        handler: "createProduct",
         role: dbFullAccessRole,
         environment: {
           DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
@@ -76,13 +78,13 @@ export class ProductsStack extends cdk.Stack {
     );
 
     const productById = products.addResource("{product_id}");
-    const productByIdLambdaIntegration = new lambda.Function(
+    const productByIdLambdaIntegration = new lambdaNodejs.NodejsFunction(
       this,
       "Single Product Endpoint",
       {
         runtime: lambda.Runtime.NODEJS_18_X,
-        code: lambda.Code.fromAsset("lib/products"),
-        handler: "lambda.getProductById",
+        entry: path.join(__dirname, "./lambda/get-product-by-id.ts"),
+        handler: "getProductById",
         role: dbFullAccessRole,
         environment: {
           DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
