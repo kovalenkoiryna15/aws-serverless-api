@@ -1,8 +1,9 @@
 import { APIGatewayProxyResult, S3Event } from "aws-lambda";
 import { CopyObjectCommand, CopyObjectCommandInput, DeleteObjectCommand, DeleteObjectCommandInput, GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3Client } from "@aws-sdk/client-s3";
+import { SQSClient, SendMessageCommand, SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import csv from "csv-parser";
 import { buildResponse, catchError, log } from "./utils";
-import { BUCKET_NAME, Folders } from "./constants";
+import { Folders } from "./constants";
 import { checkBodyIsIncomingMessage } from "./utils/check-body-type.util";
 
 export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyResult> => {
@@ -12,26 +13,38 @@ export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyR
     const s3Client = new S3Client();
     const objectKey = decodeURIComponent(event.Records[0].s3.object.key);
     const getObjectCommandInput: GetObjectCommandInput = {
-      Bucket: BUCKET_NAME,
+      Bucket: process.env.BUCKET_NAME!,
       Key: objectKey,
     };
     const { Body }: GetObjectCommandOutput = await s3Client.send(new GetObjectCommand(getObjectCommandInput));
 
     if (Body && checkBodyIsIncomingMessage(Body)) {
-      const result: any[] = [];
+      const sqs = new SQSClient();
+      const promises: Promise<SendMessageCommandOutput>[] = [];
 
-      Body.pipe(csv())
-        .on("data", (data: any) => {
-          log('info', data, '[Data]');
-          result.push(data);
-        })
-        .on("error", (error: any) => log('error', error))
-        .on("end", () => log('info', result, '[Result]'));
+      await new Promise<void>((resolve, reject) => {
+        Body.pipe(csv({
+          mapValues: ({ header, index, value, }) => value,
+        }))
+          .on("data", (data: any) => {
+            const promise: Promise<SendMessageCommandOutput> = sqs.send(new SendMessageCommand({
+              QueueUrl: process.env.QUEUE_URL,
+              MessageBody: JSON.stringify(data),
+            }));
+            promises.push(promise);
+          })
+          .on("end", () => {
+            resolve();
+          })
+          .on("error", (error: any) => reject(error.message));
+      });
+
+      await Promise.all(promises);
 
       const newObjectKey = objectKey.replace(Folders.UPLOADED, Folders.PARSED);
       const copyObjectCommandInput: CopyObjectCommandInput = {
-        Bucket: BUCKET_NAME,
-        CopySource: `${BUCKET_NAME}/${encodeURIComponent(objectKey)}`,
+        Bucket: process.env.BUCKET_NAME!,
+        CopySource: `${process.env.BUCKET_NAME!}/${encodeURIComponent(objectKey)}`,
         Key: newObjectKey,
       };
 
@@ -39,7 +52,7 @@ export const importFileParser = async (event: S3Event): Promise<APIGatewayProxyR
       log('info', `File ${objectKey} moved to parsed. New key ${newObjectKey}`);
 
       const deleteObjectCommandInput: DeleteObjectCommandInput = {
-        Bucket: BUCKET_NAME,
+        Bucket: process.env.BUCKET_NAME!,
         Key: objectKey,
       };
 

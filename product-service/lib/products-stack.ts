@@ -1,14 +1,19 @@
+import dotenv from 'dotenv';
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import path from 'path';
 import {
   DYNAMO_DB_PRODUCTS_TABLE_NAME,
   DYNAMO_DB_STOCKS_TABLE_NAME,
 } from "./db/constants/db.constants";
+
+dotenv.config();
 
 export class ProductsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -97,5 +102,27 @@ export class ProductsStack extends cdk.Stack {
       lambda.HttpMethod.GET,
       new apigw.LambdaIntegration(productByIdLambdaIntegration)
     );
+
+
+    const catalogBatchProcess = new lambdaNodejs.NodejsFunction(
+      this,
+      "Catalog Batch Process",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "./lambda/catalog-batch-process.ts"),
+        handler: "catalogBatchProcess",
+        role: dbFullAccessRole,
+        environment: {
+          DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          DYNAMO_DB_STOCKS_TABLE_NAME: DYNAMO_DB_STOCKS_TABLE_NAME,
+          CDK_DEFAULT_REGION: process.env.CDK_DEFAULT_REGION!,
+        },
+      }
+    );
+
+    const catalogItemsQueue = new sqs.Queue(this, 'Catalog Items Queue');
+    catalogItemsQueue.grantConsumeMessages(catalogBatchProcess);
+
+    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5, maxBatchingWindow: cdk.Duration.seconds(20) }));
   }
 }
