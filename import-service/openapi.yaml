@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: Awesome Store - REST API
+  version: 1.0.0
+servers: 
+  - url:  https://h2edkcvx01.execute-api.eu-west-1.amazonaws.com/prod/
+tags:
+  - name: import
+paths:
+  /import:
+    get:
+      tags:
+        - import
+      summary: Get signed url
+      operationId: importProductsFile
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: File name with extension
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedUrl'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    SignedUrl:
+      type: object
+      properties:
+        signedUrl:
+          type: string
+          example: https://{bucketName}.s3.{region}.amazonaws.com/uploaded/{fileName}
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
