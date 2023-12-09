@@ -47,6 +47,12 @@ export const catalogBatchProcess = async (event: SQSEvent): Promise<APIGatewayPr
       await sns.send(new PublishCommand({
         TopicArn: process.env.TOPIC_ARN,
         Message: 'New product was created.',
+        MessageAttributes: {
+          'price': {
+            DataType: 'Number',
+            StringValue: String(price),
+          },
+        },
       }));
 
       return Promise.resolve(availableProductInput);

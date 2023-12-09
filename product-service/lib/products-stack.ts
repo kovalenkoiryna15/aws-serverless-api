@@ -132,7 +132,20 @@ export class ProductsStack extends cdk.Stack {
     }));
 
     const createProductTopic = new sns.Topic(this, 'Create Product Topic', { displayName: 'Create Product Topic' });
-    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL!));
+    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL_ONE!, {
+      filterPolicy: {
+        price: sns.SubscriptionFilter.numericFilter({
+          lessThan: 300,
+        }),
+      },
+    }));
+    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL_TWO!, {
+      filterPolicy: {
+        'price': sns.SubscriptionFilter.numericFilter({
+          greaterThan: 300,
+        }),
+      },
+    }));
     createProductTopic.grantPublish(catalogBatchProcess);
   }
 }
