@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as apigw from "aws-cdk-lib/aws-apigateway";
@@ -6,8 +7,11 @@ import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { BUCKET_ARN, BUCKET_NAME, Folders } from './lambda/constants';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { Folders } from './lambda/constants';
 import path from 'path';
+
+dotenv.config();
 
 export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -24,7 +28,7 @@ export class ImportServiceStack extends cdk.Stack {
   
     const apiChildResource = api.root.addResource("import");
 
-    const bucket = s3.Bucket.fromBucketArn(this, "Import Products Bucket", BUCKET_ARN);
+    const bucket = s3.Bucket.fromBucketArn(this, "Import Products Bucket", process.env.BUCKET_ARN!);
   
     const importProductsFile = new lambdaNodejs.NodejsFunction(
       this,
@@ -34,7 +38,7 @@ export class ImportServiceStack extends cdk.Stack {
         entry: path.join(__dirname, "./lambda/import-products-file.ts"),
         handler: "importProductsFile",
         environment: {
-          BUCKET_NAME: BUCKET_NAME,
+          BUCKET_NAME: process.env.BUCKET_NAME!,
         },
       }
     );
@@ -56,13 +60,17 @@ export class ImportServiceStack extends cdk.Stack {
         runtime: lambda.Runtime.NODEJS_18_X,
         entry: path.join(__dirname, "./lambda/import-file-parser.ts"),
         handler: "importFileParser",
+        environment: {
+          QUEUE_URL: process.env.QUEUE_URL!,
+          BUCKET_NAME: process.env.BUCKET_NAME!,
+        },
       }
     );
 
     importFileParser.addPermission('AllowS3Invocation', {
       action: 'lambda:InvokeFunction',
       principal: new iam.ServicePrincipal('s3.amazonaws.com'),
-      sourceArn: BUCKET_ARN,
+      sourceArn: process.env.BUCKET_ARN!,
     });
 
     bucket.grantReadWrite(importFileParser);
@@ -73,5 +81,8 @@ export class ImportServiceStack extends cdk.Stack {
       new s3n.LambdaDestination(importFileParser),
       { prefix: `${Folders.UPLOADED}/`, suffix: 'csv' },
     );
+
+    const catalogItemsQueue = sqs.Queue.fromQueueArn(this, 'Catalog Items Queue', process.env.QUEUE_ARN!);
+    catalogItemsQueue.grantSendMessages(importFileParser);
   }
 }

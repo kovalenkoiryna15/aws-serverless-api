@@ -1,30 +1,22 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { getProductById } from "../get-product-by-id";
-import { getAvailableProducts, products } from "../../mocks/products.mock";
+import { getProductById } from "../../lib/lambda/get-product-by-id";
+import * as dbRepository from "../../lib/db/db.repository";
+import { AvailableProduct } from "../../lib/models/product.model";
 
-jest.mock("../mocks/products.mock", () => ({
-  getAvailableProducts: jest.fn().mockReturnValue([
-    {
-      id: "id-1",
-      title: "title",
-      price: 10,
-      description: "description",
-      count: 2,
-    },
-  ]),
-  products: [
-    {
-      id: "id-1",
-      title: "title",
-      price: 10,
-      description: "description",
-      count: 2,
-    },
-  ],
-}));
+jest.mock("../../lib/lambda/utils/logger.util");
 
 describe("getProductById", () => {
+  const fakeAvailableProduct: AvailableProduct = {
+    id: "id-1",
+    title: "title",
+    price: 10,
+    description: "description",
+    count: 2,
+  };
+
   it("should return correct successful response", async () => {
+    jest.spyOn(dbRepository, 'getAvailableProductFromDB').mockResolvedValue(fakeAvailableProduct);
+
     const fakeEvent: Partial<APIGatewayProxyEvent> = {
       pathParameters: {
         product_id: "id-1",
@@ -37,18 +29,12 @@ describe("getProductById", () => {
     expect(response.headers?.["Content-Type"]).toBe("application/json");
     expect(response.headers?.["Access-Control-Allow-Headers"]).toBe("*");
     expect(response.headers?.["Access-Control-Allow-Credentials"]).toBe(true);
-    expect(response.body).toEqual(
-      JSON.stringify({
-        id: "id-1",
-        title: "title",
-        price: 10,
-        description: "description",
-        count: 2,
-      })
-    );
+    expect(response.body).toEqual(JSON.stringify(fakeAvailableProduct));
   });
 
   it("should return correct 400 error response", async () => {
+    jest.spyOn(dbRepository, 'getAvailableProductFromDB').mockResolvedValue(fakeAvailableProduct);
+
     const fakeEvent: Partial<APIGatewayProxyEvent> = {
       pathParameters: undefined,
     };
@@ -59,10 +45,12 @@ describe("getProductById", () => {
     expect(response.headers?.["Content-Type"]).toBe("application/json");
     expect(response.headers?.["Access-Control-Allow-Headers"]).toBe("*");
     expect(response.headers?.["Access-Control-Allow-Credentials"]).toBe(true);
-    expect(response.body).toBe("Bad Request");
+    expect(JSON.parse(response.body).message).toBe("Bad Request");
   });
 
   it("should return correct 404 error response", async () => {
+    jest.spyOn(dbRepository, 'getAvailableProductFromDB').mockResolvedValue(null);
+
     const fakeEvent: Partial<APIGatewayProxyEvent> = {
       pathParameters: {
         product_id: "nonexisting-product-id",
@@ -75,7 +63,7 @@ describe("getProductById", () => {
     expect(response.headers?.["Content-Type"]).toBe("application/json");
     expect(response.headers?.["Access-Control-Allow-Headers"]).toBe("*");
     expect(response.headers?.["Access-Control-Allow-Credentials"]).toBe(true);
-    expect(response.body).toBe(
+    expect(JSON.parse(response.body).message).toBe(
       "Not Found. There is no product with id nonexisting-product-id"
     );
   });

@@ -1,14 +1,21 @@
+import dotenv from 'dotenv';
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import path from 'path';
 import {
   DYNAMO_DB_PRODUCTS_TABLE_NAME,
   DYNAMO_DB_STOCKS_TABLE_NAME,
 } from "./db/constants/db.constants";
+
+dotenv.config();
 
 export class ProductsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -97,5 +104,48 @@ export class ProductsStack extends cdk.Stack {
       lambda.HttpMethod.GET,
       new apigw.LambdaIntegration(productByIdLambdaIntegration)
     );
+
+
+    const catalogBatchProcess = new lambdaNodejs.NodejsFunction(
+      this,
+      "Catalog Batch Process",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "./lambda/catalog-batch-process.ts"),
+        handler: "catalogBatchProcess",
+        role: dbFullAccessRole,
+        environment: {
+          DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          DYNAMO_DB_STOCKS_TABLE_NAME: DYNAMO_DB_STOCKS_TABLE_NAME,
+          CDK_DEFAULT_REGION: process.env.CDK_DEFAULT_REGION!,
+          TOPIC_ARN: process.env.TOPIC_ARN!,
+        },
+      }
+    );
+
+    const catalogItemsQueue = new sqs.Queue(this, 'Catalog Items Queue');
+    catalogItemsQueue.grantConsumeMessages(catalogBatchProcess);
+
+    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, {
+      batchSize: 5,
+      maxBatchingWindow: cdk.Duration.seconds(10),
+    }));
+
+    const createProductTopic = new sns.Topic(this, 'Create Product Topic', { displayName: 'Create Product Topic' });
+    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL_ONE!, {
+      filterPolicy: {
+        price: sns.SubscriptionFilter.numericFilter({
+          lessThan: 300,
+        }),
+      },
+    }));
+    createProductTopic.addSubscription(new EmailSubscription(process.env.EMAIL_TWO!, {
+      filterPolicy: {
+        'price': sns.SubscriptionFilter.numericFilter({
+          greaterThan: 300,
+        }),
+      },
+    }));
+    createProductTopic.grantPublish(catalogBatchProcess);
   }
 }

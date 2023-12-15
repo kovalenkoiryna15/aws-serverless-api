@@ -1,7 +1,17 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { getProductsList } from "../get-products-list";
+import { getProductsList } from "../../lib/lambda/get-products-list";
+import dotenv from "dotenv";
+import * as dbRepository from "../../lib/db/db.repository";
+
+dotenv.config();
+
+jest.mock("../../lib/lambda/utils/logger.util");
 
 describe("getProductsList", () => {
+  beforeAll(() => {
+    jest.spyOn(dbRepository, 'getAllAvailableProductsFromDB').mockResolvedValue([]);
+  });
+
   it("should return correct response", async () => {
     const fakeEvent: Partial<APIGatewayProxyEvent> = {
       httpMethod: 'GET',
