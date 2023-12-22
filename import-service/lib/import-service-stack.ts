@@ -23,7 +23,30 @@ export class ImportServiceStack extends cdk.Stack {
         allowHeaders: ["*"],
         allowOrigins: ["*"],
         allowMethods: apigw.Cors.ALL_METHODS,
+        allowCredentials: true
       },
+    });
+
+    new apigw.GatewayResponse(this, 'AccessDeniedResponse', {
+      restApi: api,
+      type: apigw.ResponseType.ACCESS_DENIED,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Methods': "'*'",
+        'Access-Control-Allow-Headers': "'*'",
+      },
+      statusCode: '403',
+    });
+
+    new apigw.GatewayResponse(this, 'UnauthorizedResponse', {
+      restApi: api,
+      type: apigw.ResponseType.UNAUTHORIZED,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Methods': "'*'",
+        'Access-Control-Allow-Headers': "'*'",
+      },
+      statusCode: '401',
     });
   
     const apiChildResource = api.root.addResource("import");
@@ -42,6 +65,32 @@ export class ImportServiceStack extends cdk.Stack {
         },
       }
     );
+
+    const basicAuthorizer = lambda.Function.fromFunctionArn(
+      this,
+      "BasicAuthorizer",
+      process.env.BASIC_AUTHORIZER_ARN!
+    );
+
+    const invokeAuthoriserRole = new iam.Role(this, "Role", {
+      roleName: "InvokeAuthoriserRole",
+      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+      inlinePolicies: {
+        InvokeTokenAuthoriserPolicy: new iam.PolicyDocument({
+          statements: [new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            resources: [basicAuthorizer.functionArn],
+            actions: ["lambda:InvokeFunction"],
+          })]
+        })
+      }
+    });
+
+    const importAuthorizer = new apigw.RequestAuthorizer(this, "ImportAuthorizer", {
+      handler: basicAuthorizer,
+      identitySources: [apigw.IdentitySource.header('Authorization')],
+      assumeRole: invokeAuthoriserRole,
+    });
   
     apiChildResource.addMethod(
       lambda.HttpMethod.GET,
@@ -50,6 +99,7 @@ export class ImportServiceStack extends cdk.Stack {
         requestParameters: {
           'method.request.querystring.name': true
         },
+        authorizer: importAuthorizer,
       }
     );
 
