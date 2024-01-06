@@ -14,11 +14,11 @@ export class HttpService {
       url,
     };
 
-    if (Object.keys(body).length) {
+    if (body && Object.keys(body).length) {
       config.data = body;
     }
 
-    if (Object.keys(headers).length) {
+    if (headers && Object.keys(headers).length) {
       config.headers = headers;
     }
 
