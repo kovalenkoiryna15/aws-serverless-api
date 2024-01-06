@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ErrorResponseBody, SuccessResponseBody } from './types/response.model';
 import { HttpService } from './http.service';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError, AxiosHeaders, AxiosResponse } from 'axios';
 
 @Injectable()
 export class AppService {
@@ -10,7 +10,7 @@ export class AppService {
 
   async redirect(
     recipient: string,
-    { method, originalUrl, body }: Request,
+    { method, originalUrl, body, headers }: Request,
     response: Response<ErrorResponseBody | SuccessResponseBody>,
   ): Promise<void> {
     const recipientURL = process.env[recipient];
@@ -22,8 +22,12 @@ export class AppService {
       return;
     }
 
+    const redirectHeaders = headers.authorization
+      ? new AxiosHeaders({ authorization: headers.authorization })
+      : undefined;
+
     this.httpService
-      .redirect(method, `${recipientURL}${originalUrl}`, body)
+      .redirect(method, `${recipientURL}${originalUrl}`, body, redirectHeaders)
       .then(({ data }: AxiosResponse) => {
         response.json({ data });
       })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosHeaders, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 @Injectable()
 export class HttpService {
@@ -7,6 +7,7 @@ export class HttpService {
     method: string,
     url: string,
     body?: D,
+    headers?: AxiosHeaders,
   ): Promise<AxiosResponse<unknown, D>> {
     const config: AxiosRequestConfig<D> = {
       method,
@@ -15,6 +16,10 @@ export class HttpService {
 
     if (Object.keys(body).length) {
       config.data = body;
+    }
+
+    if (Object.keys(headers).length) {
+      config.headers = headers;
     }
 
     return axios(config);
