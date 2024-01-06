@@ -1,1 +1,1 @@
-web: npm i -g @nestjs/cli & nest start
+web: npm i -g @nestjs/cli && npm run start
