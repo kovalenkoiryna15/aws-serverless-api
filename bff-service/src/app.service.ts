@@ -14,8 +14,6 @@ export class AppService {
     response: Response<ErrorResponseBody | SuccessResponseBody>,
   ): Promise<void> {
     const recipientURL = process.env[recipient];
-    console.log('recipientURL', recipientURL);
-    console.log('originalUrl', originalUrl);
 
     if (!recipientURL) {
       response

@@ -12,7 +12,6 @@ export class AppController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('recipient', recipient);
     return this.appService.redirect(recipient, req, res);
   }
 }

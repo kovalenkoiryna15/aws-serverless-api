@@ -13,7 +13,7 @@ export class HttpService {
       url,
     };
 
-    if (body) {
+    if (Object.keys(body).length) {
       config.data = body;
     }
 
