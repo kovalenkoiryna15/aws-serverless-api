@@ -1,21 +1,36 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { response } from "./utils/response.util";
-import { putAvailableProductToDB } from "../db/db.repository";
 import { AvailableProduct } from "../models/product.model";
-import { randomUUID } from "crypto";
-import { validateObject } from "../validation/validate-object.util";
+import { response } from "./utils/response.util";
+import { getAvailableProductFromDB, updateAvailableProductToDB } from "../db/db.repository";
 import { catchError } from "./utils/error-handler.util";
 import { log } from "./utils/logger.util";
-import { isEmpty } from "./utils/is-empty.util";
-import { availableProductSchema } from "../validation/schemas/available-product.schema";
 import { isValidBody } from "./utils/validate-body.util";
+import { isEmpty } from "./utils/is-empty.util";
+import { validateObject } from "../validation/validate-object.util";
+import { availableProductSchema } from "../validation/schemas/available-product.schema";
 
-export const createProduct = async (
+export const updateProduct = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  log("request", { method: event.httpMethod, body: event.body });
+  log("request", { method: event.httpMethod, pathParameters: event.pathParameters });
 
   const promise = async () => {
+    let product: AvailableProduct | null;
+    const product_id: string | undefined = event.pathParameters?.product_id;
+  
+    if (!product_id) {
+      return response(400, "Bad Request");
+    }
+  
+    product = await getAvailableProductFromDB(product_id);
+  
+    if (!product) {
+      return response(
+        404,
+        `Not Found. There is no product with id ${event.pathParameters?.product_id}`
+      );
+    }
+
     if (!isValidBody(event.body)) {
       return response(400, "Bad Request. Body is not valid json.");
     }
@@ -27,7 +42,7 @@ export const createProduct = async (
     }
   
     const availableProductInput = {
-      id: randomUUID(),
+      id: product.id,
       title,
       description: isEmpty(description) ? "" : description,
       price,
@@ -41,7 +56,7 @@ export const createProduct = async (
       return response(400, `Bad Request. Errors: ${validationErrors.join(';')}`);
     }
 
-    await putAvailableProductToDB(availableProductInput);
+    await updateAvailableProductToDB(availableProductInput);
   
     return response(200, availableProductInput);
   };

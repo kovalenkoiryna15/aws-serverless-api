@@ -5,12 +5,12 @@ info:
 servers: 
   - url: https://dgoalnfcfd.execute-api.eu-west-1.amazonaws.com/prod/
 tags:
-  - name: products
+  - name: Products
 paths:
   /products:
     get:
       tags:
-        - products
+        - Products
       summary: List all products
       operationId: getProductsList
       responses:
@@ -30,7 +30,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     post:
       tags:
-        - products
+        - Products
       summary: Create product
       operationId: createProduct
       requestBody:
@@ -62,10 +62,93 @@ paths:
   /products/{product_id}:
     get:
       tags:
-        - products
+        - Products
       summary: Find product by ID
       operationId: getProductById
       description: Returns a single product
+      parameters:
+        - name: product_id
+          in: path
+          description: ID of product to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProduct'
+        '400':
+          description: Product id was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Products
+      summary: Update product by ID
+      operationId: updateProduct
+      description: Updates an existing product
+      parameters:
+        - name: product_id
+          in: path
+          description: ID of product to return
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Create a new product in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailableProductInput'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProduct'
+        '400':
+          description: Product id was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Products
+      summary: Delete product by ID
+      operationId: deleteProduct
+      description: Deletes an existing product
       parameters:
         - name: product_id
           in: path
@@ -116,6 +199,9 @@ components:
         id:
           type: string
           example: kenya-kiringa
+        image:
+          type: string
+          example: https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
     AvailableProductInput:
       type: object
       properties:
@@ -132,7 +218,10 @@ components:
         count:
           type: integer
           format: int64
-          example: 100
+          example: 10
+        image:
+          type: string
+          example: https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
     Error:
       type: object
       properties:

@@ -39,12 +39,14 @@ describe("catalogBatchProcess", () => {
     description: 'd-1',
     price: 100,
     count: 10,
+    image: 'url',
   };
   const fakeProductTwo: Omit<AvailableProduct, 'id'> = {
     title: 't-2',
     description: 'd-2',
     price: 200,
     count: 20,
+    image: 'url',
   };
   const fakeAvailableProductOne: AvailableProduct = { ...fakeProductOne, id: 'id' };
   const fakeAvailableProductTwo: AvailableProduct = { ...fakeProductTwo, id: 'id' };

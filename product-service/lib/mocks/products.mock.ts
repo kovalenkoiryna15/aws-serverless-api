@@ -8,6 +8,7 @@ export const products: Product[] = [
     id: "kenya-kiringa",
     price: 20,
     title: "Kenya Kiringa Coffee",
+    image: 'url',
   },
   {
     description:
@@ -15,6 +16,7 @@ export const products: Product[] = [
     id: "drip-blend",
     price: 11,
     title: "Drip Coffee Blend",
+    image: 'url',
   },
   {
     description:
@@ -22,6 +24,7 @@ export const products: Product[] = [
     id: "decaf-colombia-cauca",
     price: 12,
     title: "Decaf Colombia Cauca Espresso",
+    image: 'url',
   },
   {
     description:
@@ -29,6 +32,7 @@ export const products: Product[] = [
     id: "fall-espresso",
     price: 14,
     title: "Fall Espresso",
+    image: 'url',
   },
   {
     description:
@@ -36,6 +40,7 @@ export const products: Product[] = [
     id: "ethiopia-yirga-beloya",
     price: 15,
     title: "Ethiopia Yirga Beloya",
+    image: 'url',
   },
   {
     description:
@@ -43,6 +48,7 @@ export const products: Product[] = [
     id: "costa-rica-las-lajas",
     price: 16,
     title: "Costa Rica Las Lajas",
+    image: 'url',
   },
 ];
 

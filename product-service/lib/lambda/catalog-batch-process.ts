@@ -22,7 +22,7 @@ export const catalogBatchProcess = async (event: SQSEvent): Promise<APIGatewayPr
         return Promise.reject('Bad Request. Body is not valid json.');
       }
   
-      const { title, description, price, count }: any = record.body && JSON.parse(record.body);
+      const { title, description, price, count, image }: any = record.body && JSON.parse(record.body);
     
       if (isEmpty(title) || isEmpty(price) || isEmpty(count)) {
         return Promise.reject("Bad Request. Required params are missing. You should provide title, price and count.");
@@ -34,6 +34,7 @@ export const catalogBatchProcess = async (event: SQSEvent): Promise<APIGatewayPr
         description: isEmpty(description) ? "" : description,
         price,
         count,
+        image: image || 'https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg',
       };
     
       const validationErrors: string[] = validateObject<AvailableProduct>(availableProductInput, availableProductSchema);

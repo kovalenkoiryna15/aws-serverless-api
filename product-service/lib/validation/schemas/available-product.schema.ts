@@ -30,4 +30,10 @@ export const availableProductSchema: Record<keyof AvailableProduct, Schema> = {
     max: 1000000,
     min: 1,
   },
+  image: {
+    type: 'string',
+    isRequired: true,
+    max: 256,
+    min: 1,
+  },
 };

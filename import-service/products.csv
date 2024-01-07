@@ -1,7 +1,7 @@
-title,description,price,count
-Product 1,Description 1,10,100
-Product 2,Description 2,20,200
-Product 3,Description 3,30,200
-Product 4,Description 4,40,200
-Product 5,Description 5,50,200
-Product 6,Description 6,1000,200
+title,description,price,count,image
+Product 1,Description 1,10,100,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
+Product 2,Description 2,20,200,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
+Product 3,Description 3,30,200,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
+Product 4,Description 4,40,200,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
+Product 5,Description 5,50,200,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
+Product 6,Description 6,1000,200,https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
