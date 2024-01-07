@@ -37,7 +37,7 @@ export class AppService {
 
       if (cachedResponse) {
         const { data, status } = cachedResponse;
-        response.status(status).json({ data: data });
+        response.status(status).json({ ...data });
         return;
       }
     }
@@ -51,7 +51,7 @@ export class AppService {
       .redirect(method, redirectUrl, body, redirectHeaders)
       .then((redirectResponse: AxiosResponse) => {
         const { data, status } = redirectResponse;
-        response.status(status).json({ data });
+        response.status(status).json({ ...data });
 
         if (this.shouldBeCached(cacheKey)) {
           this.cacheService.set<AxiosResponse>(cacheKey, redirectResponse);
@@ -64,14 +64,17 @@ export class AppService {
 
   private sendErrorResponse(
     response: Response,
-    error: Error | AxiosError | { status: number; message: string },
+    error:
+      | Error
+      | AxiosError<Record<string, string>, unknown>
+      | { status: number; message: string },
   ): void {
     if ('response' in error) {
       const {
         response: { status, data },
       } = error;
 
-      response.status(status).json({ data });
+      response.status(status).json({ ...data });
     }
 
     response
