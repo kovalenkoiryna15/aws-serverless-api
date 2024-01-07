@@ -98,6 +98,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - products
+      summary: Update product by ID
+      operationId: updateProduct
+      description: Updates an existing product
+      parameters:
+        - name: product_id
+          in: path
+          description: ID of product to return
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Create a new product in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailableProductInput'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProduct'
+        '400':
+          description: Product id was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     AvailableProduct:
@@ -116,6 +161,9 @@ components:
         id:
           type: string
           example: kenya-kiringa
+        image:
+          type: string
+          example: https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
     AvailableProductInput:
       type: object
       properties:
@@ -132,7 +180,10 @@ components:
         count:
           type: integer
           format: int64
-          example: 100
+          example: 10
+        image:
+          type: string
+          example: https://rss-products-assets.s3.eu-west-1.amazonaws.com/default.jpg
     Error:
       type: object
       properties:

@@ -105,6 +105,26 @@ export class ProductsStack extends cdk.Stack {
       new apigw.LambdaIntegration(productByIdLambdaIntegration)
     );
 
+    const updateProductLambdaIntegration = new lambdaNodejs.NodejsFunction(
+      this,
+      "Update Product Endpoint",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "./lambda/update-product.ts"),
+        handler: "updateProduct",
+        role: dbFullAccessRole,
+        environment: {
+          DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          DYNAMO_DB_STOCKS_TABLE_NAME: DYNAMO_DB_STOCKS_TABLE_NAME,
+          CDK_DEFAULT_REGION: process.env.CDK_DEFAULT_REGION!,
+        },
+      }
+    );
+    productById.addMethod(
+      lambda.HttpMethod.PUT,
+      new apigw.LambdaIntegration(updateProductLambdaIntegration)
+    );
+
 
     const catalogBatchProcess = new lambdaNodejs.NodejsFunction(
       this,

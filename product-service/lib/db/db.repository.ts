@@ -23,12 +23,13 @@ export const dynamoDBClient = new DynamoDBClient({
   region: process.env.CDK_DEFAULT_REGION,
 });
 
-export async function putAvailableProductToDB({ id, title, description, price, count }: AvailableProduct): Promise<AvailableProduct | null> {
+export async function putAvailableProductToDB({ id, title, description, price, count, image }: AvailableProduct): Promise<AvailableProduct> {
   const product: Product = {
     id,
     title,
     description,
     price,
+    image,
   };
   const stock: Stock = {
     product_id: id,
@@ -54,7 +55,51 @@ export async function putAvailableProductToDB({ id, title, description, price, c
     new TransactWriteItemsCommand(input)
   );
 
-  return { id, title, description, price, count };
+  return { id, title, description, price, count, image };
+}
+
+export async function updateAvailableProductToDB({ id, title, description, price, count, image }: AvailableProduct): Promise<AvailableProduct> {
+  const input: TransactWriteItemsCommandInput = {
+    TransactItems: [
+      {
+        Update: {
+          TableName: process.env.DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          Key: marshall({ id }),
+          UpdateExpression: 'set #title = :title, #description = :description, #price = :price, #image = :image',
+          ExpressionAttributeNames: {
+            '#title': 'title',
+            '#description': 'description',
+            '#price': 'price',
+            '#image': 'image',
+          },
+          ExpressionAttributeValues: marshall({
+            ':title': title,
+            ':description': description,
+            ':price': price,
+            ':image': image,
+          }),
+        }
+      },
+      {
+        Update: {
+          TableName: process.env.DYNAMO_DB_STOCKS_TABLE_NAME,
+          Key: marshall({ product_id: id }),
+          UpdateExpression: 'set #count = :count',
+          ExpressionAttributeNames: {
+            '#count': 'count',
+          },
+          ExpressionAttributeValues: marshall({
+            ':count': count,
+          }),
+        }
+      },
+    ]
+  };
+  await dynamoDBClient.send(
+    new TransactWriteItemsCommand(input)
+  );
+
+  return { id, title, description, price, count, image };
 }
 
 export async function getAvailableProductFromDB(id: string): Promise<AvailableProduct | null> {
@@ -88,6 +133,7 @@ export async function getAvailableProductFromDB(id: string): Promise<AvailablePr
     description: attributes?.description,
     price: attributes?.price,
     count: attributes?.count,
+    image: attributes?.image,
   };
   const validationErrors: string[] = validateObject<AvailableProduct>(availableProduct, availableProductSchema);
 

@@ -12,6 +12,7 @@ describe("getProductById", () => {
     price: 10,
     description: "description",
     count: 2,
+    image: 'url',
   };
 
   it("should return correct successful response", async () => {
