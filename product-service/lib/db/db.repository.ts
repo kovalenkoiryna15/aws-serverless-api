@@ -140,6 +140,28 @@ export async function getAvailableProductFromDB(id: string): Promise<AvailablePr
   return validationErrors.length ? null : (availableProduct as AvailableProduct);
 }
 
+export async function deleteAvailableProductFromDB(id: string): Promise<void> {
+  const input: TransactWriteItemsCommandInput = {
+    TransactItems: [
+      {
+        Delete: {
+          TableName: process.env.DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          Key: marshall({ id }),
+        }
+      },
+      {
+        Delete: {
+          TableName: process.env.DYNAMO_DB_STOCKS_TABLE_NAME,
+          Key: marshall({ product_id: id }),
+        }
+      },
+    ]
+  };
+  await dynamoDBClient.send(
+    new TransactWriteItemsCommand(input)
+  );
+}
+
 export async function getAllAvailableProductsFromDB(): Promise<AvailableProduct[]> {
   const products: Product[] = await getAllProductsFromDB();
 

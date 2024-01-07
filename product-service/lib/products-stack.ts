@@ -125,6 +125,26 @@ export class ProductsStack extends cdk.Stack {
       new apigw.LambdaIntegration(updateProductLambdaIntegration)
     );
 
+    const deleteProductLambdaIntegration = new lambdaNodejs.NodejsFunction(
+      this,
+      "Delete Product Endpoint",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "./lambda/delete-product.ts"),
+        handler: "deleteProduct",
+        role: dbFullAccessRole,
+        environment: {
+          DYNAMO_DB_PRODUCTS_TABLE_NAME: DYNAMO_DB_PRODUCTS_TABLE_NAME,
+          DYNAMO_DB_STOCKS_TABLE_NAME: DYNAMO_DB_STOCKS_TABLE_NAME,
+          CDK_DEFAULT_REGION: process.env.CDK_DEFAULT_REGION!,
+        },
+      }
+    );
+    productById.addMethod(
+      lambda.HttpMethod.DELETE,
+      new apigw.LambdaIntegration(deleteProductLambdaIntegration)
+    );
+
 
     const catalogBatchProcess = new lambdaNodejs.NodejsFunction(
       this,
